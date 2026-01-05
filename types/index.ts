@@ -1,6 +1,7 @@
 export interface WeatherData {
   id: number;
   name: string;
+  dt: number;
   sys: {
     country: string;
   };
@@ -9,8 +10,11 @@ export interface WeatherData {
     feels_like: number;
     humidity: number;
     pressure: number;
+    temp_min: number;
+    temp_max: number;
   };
   weather: Array<{
+    id: number;
     main: string;
     description: string;
     icon: string;
