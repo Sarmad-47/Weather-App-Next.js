@@ -15,15 +15,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { SidebarNav } from "./Sidebar";
+import ModeToggle from "./mode-toggle";
 
 export default function Header() {
-  const { theme, setTheme } = useTheme();
-
-  const toggleTheme = () => {
-    // you said you’ll add logic later — this already works if ThemeProvider is set.
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-3 px-4 md:px-6">
@@ -45,19 +39,12 @@ export default function Header() {
           </SheetContent>
         </Sheet>
 
-        <div className="flex-1" />
+        <div className="flex-1  " />
 
         {/* Theme toggle */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          className="cursor-pointer"
-        >
-          <Sun className="h-4 w-4 dark:hidden" />
-          <Moon className="hidden h-4 w-4 dark:block" />
-        </Button>
+        <div className="mr-10 md:mr-10">
+          <ModeToggle />
+        </div>
       </div>
     </header>
   );
