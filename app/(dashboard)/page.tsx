@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { SearchBar } from "@/components/shared/SearchBar";
+import { useEffect, useState } from "react";
+
 import { WeatherCard } from "@/components/weather/WeatherCard";
 import { TemperatureToggle } from "@/components/weather/TemperatureToggle";
 import { ForecastChart } from "@/components/weather/ForecastChart";
@@ -11,19 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { useWeather } from "@/lib/context/WeatherContext";
-import {
-  RefreshCw,
-  Plus,
-  AlertCircle,
-  Star,
-  Globe,
-  Thermometer,
-  Droplets,
-  Wind,
-} from "lucide-react";
+import { RefreshCw, Plus, AlertCircle, Star, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import StatsOverview from "@/components/weather/StatsOverview";
+import WeatherGuideLines from "@/components/weather/WeatherGuideLines";
+import { AppPagination } from "@/components/shared/AppPagination";
 
 export default function DashboardPage() {
   const {
@@ -33,47 +26,21 @@ export default function DashboardPage() {
     isLoading,
     error,
     refreshWeatherData,
-    addCityFromSearch,
-    removeCity,
     fetchWeatherForCity,
-    unit,
-    setUnit,
   } = useWeather();
 
   const [activeTab, setActiveTab] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Pagination state
+  const PAGE_SIZE = 6;
+  const [page, setPage] = useState(1);
 
   // Filter cities based on active tab
   const filteredCities =
     activeTab === "favorites"
       ? cities.filter((city) => favoriteCities.includes(city.id))
       : cities;
-
-  // Calculate aggregated weather stats
-  const weatherStats = {
-    avgTemp:
-      cities.reduce((sum, city) => {
-        const weather = weatherData[city.id];
-        return sum + (weather?.main.temp || 0);
-      }, 0) / cities.length || 0,
-
-    avgHumidity:
-      cities.reduce((sum, city) => {
-        const weather = weatherData[city.id];
-        return sum + (weather?.main.humidity || 0);
-      }, 0) / cities.length || 0,
-
-    totalCities: cities.length,
-    favoriteCount: favoriteCities.length,
-  };
-
-  const handleSearch = async (query: string) => {
-    try {
-      await addCityFromSearch(query);
-    } catch (err) {
-      console.error("Search error:", err);
-    }
-  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -86,16 +53,21 @@ export default function DashboardPage() {
     }
   };
 
-  const handleRemoveCity = (cityId: string) => {
-    removeCity(cityId);
-  };
-
   const handleRefreshCity = async (cityId: string) => {
     const city = cities.find((c) => c.id === cityId);
     if (city) {
       await fetchWeatherForCity(city);
     }
   };
+
+  // For Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredCities.length / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
+  const paginatedCities = filteredCities.slice(start, start + PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, filteredCities.length]);
 
   // Render loading state
   if (isLoading && !weatherData) {
@@ -131,7 +103,7 @@ export default function DashboardPage() {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="gap-2"
+                className="gap-2 cursor-pointer"
               >
                 <RefreshCw
                   className={cn("w-4 h-4", isRefreshing && "animate-spin")}
@@ -140,80 +112,10 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
-
-          {/* Search Bar */}
-          <div className="mb-8">
-            <SearchBar onSearch={handleSearch} />
-          </div>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Cities
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {weatherStats.totalCities}
-                  </p>
-                </div>
-                <Globe className="w-8 h-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Avg Temperature
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {Math.round(weatherStats.avgTemp)}°
-                    {unit === "metric" ? "C" : "F"}
-                  </p>
-                </div>
-                <Thermometer className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Avg Humidity
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {Math.round(weatherStats.avgHumidity)}%
-                  </p>
-                </div>
-                <Droplets className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Favorites
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {weatherStats.favoriteCount}
-                  </p>
-                </div>
-                <Star className="w-8 h-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <StatsOverview />
 
         {/* Error Alert */}
         {error && (
@@ -234,17 +136,20 @@ export default function DashboardPage() {
             >
               <div className="flex items-center justify-between mb-6">
                 <TabsList>
-                  <TabsTrigger value="all" className="gap-2">
+                  <TabsTrigger value="all" className="gap-2 cursor-pointer">
                     <Globe className="w-4 h-4" />
                     All Cities ({cities.length})
                   </TabsTrigger>
-                  <TabsTrigger value="favorites" className="gap-2">
+                  <TabsTrigger
+                    value="favorites"
+                    className="gap-2 cursor-pointer"
+                  >
                     <Star className="w-4 h-4" />
                     Favorites ({favoriteCities.length})
                   </TabsTrigger>
                 </TabsList>
 
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground ml-2">
                   {filteredCities.length} cities displayed
                 </div>
               </div>
@@ -266,6 +171,7 @@ export default function DashboardPage() {
                             : "Search for cities to add them to your dashboard"}
                         </p>
                         <Button
+                          className="cursor-pointer"
                           onClick={() =>
                             activeTab === "favorites" && setActiveTab("all")
                           }
@@ -277,12 +183,13 @@ export default function DashboardPage() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {filteredCities.map((city) => {
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                      {paginatedCities.map((city) => {
                         const weather = weatherData[city.id];
                         return (
                           <WeatherCard
                             key={city.id}
+                            cityId={city.id}
                             weather={
                               weather || {
                                 id: parseInt(city.id),
@@ -312,13 +219,17 @@ export default function DashboardPage() {
                               }
                             }
                             loading={!weather && isLoading}
-                            onRemove={() => handleRemoveCity(city.id)}
                             onRefresh={() => handleRefreshCity(city.id)}
                           />
                         );
                       })}
                     </div>
                   )}
+                  <AppPagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                  />
                 </TabsContent>
               </ErrorBoundary>
             </Tabs>
@@ -329,79 +240,8 @@ export default function DashboardPage() {
             {/* Forecast Chart */}
             <ForecastChart />
 
-            {/* Weather Tips */}
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4">Weather Tips</h3>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-start gap-2">
-                    <Thermometer className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
-                    <span>
-                      Click on any city card to expand detailed weather
-                      information
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" />
-                    <span>
-                      Click the star icon to add cities to your favorites
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <RefreshCw className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                    <span>
-                      Use the refresh button to update all weather data
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Wind className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
-                    <span>
-                      Wind direction shows as compass direction (N, NE, E, etc.)
-                    </span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Temperature Legend */}
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4">Temperature Guide</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-500 font-medium">
-                      &lt; 0°{unit === "metric" ? "C" : "F"}
-                    </span>
-                    <span className="text-muted-foreground">Freezing</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-cyan-500 font-medium">0-10°</span>
-                    <span className="text-muted-foreground">Cold</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-green-500 font-medium">10-20°</span>
-                    <span className="text-muted-foreground">Cool</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-yellow-500 font-medium">20-30°</span>
-                    <span className="text-muted-foreground">Warm</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-orange-500 font-medium">30-40°</span>
-                    <span className="text-muted-foreground">Hot</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-red-500 font-medium">&gt; 40°</span>
-                    <span className="text-muted-foreground">Extreme</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Weather Guide and Tips  */}
+            <WeatherGuideLines />
           </div>
         </div>
 

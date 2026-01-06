@@ -42,7 +42,8 @@ type WeatherAction =
   | {
       type: "REORDER_CITIES";
       payload: { startIndex: number; endIndex: number };
-    };
+    }
+  | { type: "LOAD_FROM_STORAGE"; payload: Partial<WeatherState> };
 
 // Initial state
 const initialState: WeatherState = {
@@ -97,11 +98,15 @@ function weatherReducer(
     case "SET_CITIES":
       return { ...state, cities: action.payload };
 
-    case "ADD_CITY":
+    case "ADD_CITY": {
+      const exists = state.cities.some((c) => c.id === action.payload.id);
+      if (exists) return state; //  prevents duplicates no matter what
+
       return {
         ...state,
         cities: [...state.cities, { ...action.payload, favorite: false }],
       };
+    }
 
     case "REMOVE_CITY":
       return {
@@ -191,6 +196,26 @@ function weatherReducer(
       result.splice(action.payload.endIndex, 0, removed);
       return { ...state, cities: result };
 
+    case "LOAD_FROM_STORAGE": {
+      const incomingCities = action.payload.cities ?? state.cities;
+
+      const seen = new Set<string>();
+      const uniqueCities = incomingCities.filter((c) => {
+        if (seen.has(c.id)) return false;
+        seen.add(c.id);
+        return true;
+      });
+
+      return {
+        ...state,
+        ...action.payload,
+        cities: uniqueCities.map((city) => ({
+          ...city,
+          favorite: action.payload.favoriteCities?.includes(city.id) || false,
+        })),
+      };
+    }
+
     default:
       return state;
   }
@@ -203,7 +228,11 @@ interface WeatherContextType extends WeatherState {
   fetchWeatherForAllCities: () => Promise<void>;
   searchCity: (query: string) => Promise<City | null>;
   refreshWeatherData: () => Promise<void>;
-  addCityFromSearch: (cityName: string, countryCode?: string) => Promise<void>;
+  addCityFromSearch: (
+    cityName: string,
+    countryCode?: string
+  ) => Promise<City | null>;
+
   toggleFavorite: (cityId: string) => void;
   setUnit: (unit: "metric" | "imperial") => void;
   removeCity: (cityId: string) => void;
@@ -220,6 +249,30 @@ export function useWeather() {
   return context;
 }
 
+// Function to load persisted state from localStorage
+const loadPersistedState = (): Partial<WeatherState> => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const savedState = localStorage.getItem("weather-app-state");
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      return {
+        cities: parsed.cities || initialState.cities,
+        favoriteCities: parsed.favoriteCities || initialState.favoriteCities,
+        unit: parsed.unit || initialState.unit,
+        recentSearches: parsed.recentSearches || initialState.recentSearches,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load state from localStorage:", error);
+  }
+
+  return {};
+};
+
 // Provider component
 interface WeatherProviderProps {
   children: ReactNode;
@@ -227,6 +280,14 @@ interface WeatherProviderProps {
 
 export function WeatherProvider({ children }: WeatherProviderProps) {
   const [state, dispatch] = useReducer(weatherReducer, initialState);
+
+  // Load persisted state on initial mount
+  useEffect(() => {
+    const persistedState = loadPersistedState();
+    if (Object.keys(persistedState).length > 0) {
+      dispatch({ type: "LOAD_FROM_STORAGE", payload: persistedState });
+    }
+  }, []);
 
   // Helper functions for common actions
   const toggleFavorite = useCallback((cityId: string) => {
@@ -354,10 +415,16 @@ export function WeatherProvider({ children }: WeatherProviderProps) {
   // Add city from search
   const addCityFromSearch = async (cityName: string, countryCode?: string) => {
     const city = await searchCity(cityName);
-    if (city) {
+    if (!city) return null;
+
+    //  prevent duplicates
+    const exists = state.cities.some((c) => c.id === city.id);
+    if (!exists) {
       dispatch({ type: "ADD_CITY", payload: city });
-      await fetchWeatherForCity(city);
     }
+
+    await fetchWeatherForCity(city);
+    return city;
   };
 
   // Refresh all weather data
@@ -368,64 +435,20 @@ export function WeatherProvider({ children }: WeatherProviderProps) {
   // Load initial weather data on mount
   useEffect(() => {
     fetchWeatherForAllCities();
-  }, []); // Only run once on mount
-
-  // Initialize favoriteCities from cities on first load
-  useEffect(() => {
-    if (state.favoriteCities.length === 0) {
-      const favorites = state.cities
-        .filter((city) => city.favorite)
-        .map((city) => city.id);
-
-      if (favorites.length > 0) {
-        favorites.forEach((cityId) => {
-          dispatch({ type: "TOGGLE_FAVORITE", payload: cityId });
-        });
-      }
-    }
-  }, []);
+  }, [state.cities]); // Re-fetch when cities change
 
   // Persist state to localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedState = {
+      const stateToPersist = {
         cities: state.cities,
         favoriteCities: state.favoriteCities,
         unit: state.unit,
         recentSearches: state.recentSearches,
       };
-      localStorage.setItem("weather-app-state", JSON.stringify(savedState));
+      localStorage.setItem("weather-app-state", JSON.stringify(stateToPersist));
     }
   }, [state.cities, state.favoriteCities, state.unit, state.recentSearches]);
-
-  // Load state from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedState = localStorage.getItem("weather-app-state");
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-
-        if (parsedState.cities) {
-          dispatch({ type: "SET_CITIES", payload: parsedState.cities });
-        }
-        if (parsedState.favoriteCities) {
-          // We need to ensure the favoriteCities state is set properly
-          parsedState.favoriteCities.forEach((cityId: string) => {
-            dispatch({ type: "TOGGLE_FAVORITE", payload: cityId });
-          });
-        }
-        if (parsedState.unit) {
-          dispatch({ type: "SET_UNIT", payload: parsedState.unit });
-        }
-        if (parsedState.recentSearches) {
-          // Add each recent search (they will be deduplicated in reducer)
-          parsedState.recentSearches.forEach((search: string) => {
-            dispatch({ type: "ADD_RECENT_SEARCH", payload: search });
-          });
-        }
-      }
-    }
-  }, []);
 
   const contextValue: WeatherContextType = {
     ...state,

@@ -27,7 +27,6 @@ import {
   MapPin,
   Clock,
   RefreshCw,
-  X,
   Maximize2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,18 +34,20 @@ import { useState } from "react";
 
 interface WeatherCardProps {
   weather: WeatherData;
+  cityId: string;
   loading?: boolean;
-  onRemove?: () => void;
   onRefresh?: () => void;
   className?: string;
+  showFavoriteButton?: boolean;
 }
 
 export function WeatherCard({
   weather,
+  cityId,
   loading = false,
-  onRemove,
   onRefresh,
   className,
+  showFavoriteButton = true,
 }: WeatherCardProps) {
   const { unit, favoriteCities, toggleFavorite } = useWeather();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -77,7 +78,7 @@ export function WeatherCard({
     );
   }
 
-  const isFavorite = favoriteCities.includes(weather.id.toString());
+  const isFavorite = favoriteCities.includes(cityId);
   const tempColor = getTemperatureColor(weather.main.temp, unit);
   const windDirection = getWindDirection(weather.wind.deg || 0);
   const condition = getWeatherCondition(weather.weather?.[0]?.id ?? 800);
@@ -114,21 +115,11 @@ export function WeatherCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <Maximize2 className="w-3 h-3" />
             </Button>
-            {onRemove && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={onRemove}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
           </div>
         </div>
       </CardHeader>
@@ -143,16 +134,20 @@ export function WeatherCard({
                 iconCode={weather.weather[0].icon}
                 size={isExpanded ? "lg" : "md"}
               />
-              <div className="absolute -bottom-2 -right-2">
-                <Button
-                  variant={isFavorite ? "default" : "outline"}
-                  size="icon"
-                  className="h-6 w-6 rounded-full"
-                  onClick={() => toggleFavorite(weather.id.toString())}
-                >
-                  <Star className={cn("w-3 h-3", isFavorite && "fill-white")} />
-                </Button>
-              </div>
+              {showFavoriteButton && (
+                <div className="absolute -bottom-2 -right-2">
+                  <Button
+                    variant={isFavorite ? "default" : "outline"}
+                    size="icon"
+                    className="h-6 w-6 rounded-full cursor-pointer"
+                    onClick={() => toggleFavorite(cityId)}
+                  >
+                    <Star
+                      className={cn("w-3 h-3", isFavorite && "fill-white")}
+                    />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -170,7 +165,7 @@ export function WeatherCard({
               variant="ghost"
               size="icon"
               onClick={onRefresh}
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
             </Button>

@@ -42,18 +42,6 @@ export const dashboardNavItems: DashboardNavItem[] = [
     icon: MapPin,
     description: "Weather by location (Mapbox)",
   },
-  {
-    title: "Saved",
-    href: "/saved",
-    icon: Star,
-    description: "Your bookmarked places",
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
-    description: "Units, theme, preferences",
-  },
 ];
 
 function isRouteActive(pathname: string, href: string) {

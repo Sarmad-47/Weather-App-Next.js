@@ -56,14 +56,18 @@ export function SearchBar({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 cursor-pointer"
             onClick={handleClear}
           >
             <X className="w-3 h-3" />
           </Button>
         )}
       </div>
-      <Button type="submit" className="ml-2 h-12 px-6" disabled={!query.trim()}>
+      <Button
+        type="submit"
+        className="ml-2 h-12 px-6 cursor-pointer"
+        disabled={!query.trim()}
+      >
         Search
       </Button>
     </form>

@@ -13,7 +13,10 @@ export function TemperatureToggle() {
         variant={unit === "metric" ? "default" : "ghost"}
         size="sm"
         onClick={() => setUnit("metric")}
-        className={cn("px-3 transition-all", unit === "metric" && "shadow-sm")}
+        className={cn(
+          "px-3 transition-all cursor-pointer",
+          unit === "metric" && "shadow-sm"
+        )}
       >
         °C
       </Button>
@@ -22,7 +25,7 @@ export function TemperatureToggle() {
         size="sm"
         onClick={() => setUnit("imperial")}
         className={cn(
-          "px-3 transition-all",
+          "px-3 transition-all cursor-pointer",
           unit === "imperial" && "shadow-sm"
         )}
       >
