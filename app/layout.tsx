@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { WeatherProvider } from "@/lib/context";
+import { MapProvider } from "@/lib/context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,7 +32,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <WeatherProvider>{children}</WeatherProvider>
+          <WeatherProvider>
+            <MapProvider>{children}</MapProvider>
+          </WeatherProvider>
           <Toaster />
         </ThemeProvider>
       </body>

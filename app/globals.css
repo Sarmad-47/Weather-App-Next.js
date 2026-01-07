@@ -123,3 +123,104 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+
+
+/* Mapbox Custom Styles */
+.mapboxgl-popup-content {
+  background: transparent !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+.mapboxgl-popup-tip {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(31, 41, 55, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(55, 65, 81, 0.8) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.8) !important;
+}
+
+.mapboxgl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background: rgba(55, 65, 81, 0.8) !important;
+}
+
+.mapboxgl-ctrl-fullscreen {
+  display: none !important;
+}
+
+/* Scrollbar styles for sidebar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.8);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.8);
+}
+
+
+/* ---- Mapbox controls: dark mode ---- */
+.dark .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group,
+.dark .mapboxgl-ctrl-top-left .mapboxgl-ctrl-group,
+.dark .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group,
+.dark .mapboxgl-ctrl-bottom-left .mapboxgl-ctrl-group {
+  background-color: rgb(31 41 55) !important; /* gray-800 */
+  border: 1px solid rgb(55 65 81) !important; /* gray-700 */
+}
+
+.dark .mapboxgl-ctrl-group button {
+  background-color: transparent !important;
+}
+
+.dark .mapboxgl-ctrl-group button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* icons are background sprites inside the span */
+.dark .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(1) !important;
+}
+
+
+/* light mode fallback (when not .dark) */
+.mapboxgl-ctrl-top-right .mapboxgl-ctrl-group,
+.mapboxgl-ctrl-top-left .mapboxgl-ctrl-group,
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group,
+.mapboxgl-ctrl-bottom-left .mapboxgl-ctrl-group {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgb(226 232 240) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: rgba(2, 6, 23, 0.06) !important;
+}
+
