@@ -279,7 +279,7 @@ const MapPage = () => {
         className="absolute bottom-10 right-4 z-10 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
         title="Fly to my location"
       >
-        <Navigation className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        <Navigation className="w-5 h-5 text-gray-700 dark:text-gray-300 cursor-pointer" />
       </button>
 
       {/* Location status */}
