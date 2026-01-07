@@ -1,9 +1,6 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { Menu, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
