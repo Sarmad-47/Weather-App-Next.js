@@ -96,7 +96,8 @@ const MapPage = () => {
 
   // Add/update markers when markers change
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    const mapInstance = map.current;
+    if (!mapInstance || !mapLoaded) return;
 
     // Remove existing markers
     const markers = document.querySelectorAll(".mapboxgl-marker");
@@ -202,7 +203,7 @@ const MapPage = () => {
         anchor: "bottom",
       })
         .setLngLat([marker.longitude, marker.latitude])
-        .addTo(map.current);
+        .addTo(mapInstance);
 
       // Add click event to marker
       el.addEventListener("click", (e) => {
@@ -223,7 +224,7 @@ const MapPage = () => {
         })
           .setLngLat([marker.longitude, marker.latitude])
           .setDOMContent(popupContent)
-          .addTo(map.current);
+          .addTo(mapInstance);
 
         setPopup(newPopup);
 
