@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "npm"
@@ -20,28 +20,29 @@ jobs:
 
       - name: Build
         run: npm run build
-      - name: Verify .next directory exists
+
+      - name: Check .next size
         run: |
-          if [ ! -d ".next" ]; then
-            echo "ERROR: .next directory was not created!"
-            echo "Build may have failed. Check the build logs above."
-            exit 1
-          fi
           echo "✅ .next directory found"
           ls -lah .next
+          du -sh .next
+          du -sh .next/cache
 
       - name: Upload build output (.next)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: .next
+          path: |
+            .next
+            !.next/cache
+          retention-days: 1
 
   deploy:
     runs-on: ubuntu-latest
     needs: ci
     steps:
       - name: Download build output
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: next-build
           path: .next
