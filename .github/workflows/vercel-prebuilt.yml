@@ -20,6 +20,15 @@ jobs:
 
       - name: Build
         run: npm run build
+      - name: Verify .next directory exists
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "ERROR: .next directory was not created!"
+            echo "Build may have failed. Check the build logs above."
+            exit 1
+          fi
+          echo "✅ .next directory found"
+          ls -lah .next
 
       - name: Upload build output (.next)
         uses: actions/upload-artifact@v6
